@@ -1,8 +1,9 @@
+import 'package:expense_tracker/widgets/chart/chart.dart';
 import 'package:expense_tracker/widgets/expenses_list/expenses_list.dart';
 import 'package:expense_tracker/widgets/new_expense.dart';
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/models/expense.dart';
-import 'package:expense_tracker/widgets/chart/chart.dart';
+
+import '../models/expense.dart';
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
@@ -16,6 +17,7 @@ class Expenses extends StatefulWidget {
 class _ExpensesState extends State<Expenses> {
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      useSafeArea: true,
       isScrollControlled: true,
       context: context,
       builder: (ctx) => NewExpense(onAddExpense: _addExpense),
@@ -38,12 +40,12 @@ class _ExpensesState extends State<Expenses> {
         duration: Duration(seconds: 3),
         content: Text('Expense Removed'),
         action: SnackBarAction(
-          label: 'Undo', 
+          label: 'Undo',
           onPressed: () {
             setState(() {
               _registeredExpenses.insert(expenseIndex, expense);
             });
-          }
+          },
         ),
       ),
     );
@@ -63,16 +65,19 @@ class _ExpensesState extends State<Expenses> {
       category: Category.leisure,
     ),
   ];
-
   
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
     Widget mainContent = const Center(
       child: Text('No Expenses Found. Click + to add'),
     );
 
     if (_registeredExpenses.isNotEmpty) {
-      mainContent = ExpensesList(expenses: _registeredExpenses, onRemoveExpense: _removeExpense);
+      mainContent = ExpensesList(
+        expenses: _registeredExpenses,
+        onRemoveExpense: _removeExpense,    
+      );
     }
     
     return Scaffold(
@@ -86,14 +91,20 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Chart(expenses: _registeredExpenses,),
-          Expanded(
-            child: mainContent,
-          ),
-        ],
-      ),
+      body:
+          width < 600
+              ? Column(
+                children: [
+                  Chart(expenses: _registeredExpenses),
+                  Expanded(child: mainContent),
+                ],
+              )
+              : Row(
+                children: [
+                  Expanded(child: Chart(expenses: _registeredExpenses)),
+                  Expanded(child: mainContent),
+                ],
+              ),
     );
   }
 }
